@@ -47,11 +47,6 @@ public:
 template <typename Pointer, std::enable_if_t<   std::is_pointer_v<Pointer>  , bool> = false>
 int I2CController::write_bytes(Pointer _a_pointer, size_t _len)
 {
-    if(status == Status::NOT_OPENED)
-    {
-        std::cout<<"Port is not opened\n";
-        return -1;
-    }
     wait_for_being_idle();
     status = Status::BUSY;
     int result = write(port_handle, _a_pointer, _len);
@@ -66,10 +61,9 @@ int I2CController::write_bytes(Pointer _a_pointer, size_t _len)
 template <typename Container, std::enable_if_t<has_size<Container>::value, bool> = false>
 int I2CController::write_bytes(const Container& _a_data_container)
 {
-    int result;
     wait_for_being_idle();
     status = Status::BUSY;
-    result = write(port_handle, &(_a_data_container[0]), _a_data_container.size());
+    int result = write(port_handle, &(_a_data_container[0]), _a_data_container.size());
     status = Status::IDLE;
     if(result <0)
     {
