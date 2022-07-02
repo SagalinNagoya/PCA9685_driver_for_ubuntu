@@ -19,6 +19,13 @@ void PCA9685_Controller::sleep()
 	std::array<uint8_t, 2> tx_data({ MODE1_REGISTER , 0x10});
 	write_bytes(tx_data);
 }
+void PCA9685_Controller::wake_up()
+{
+	wait_for_being_idle();
+	/*Bit4 is 0 to make it wake up. But other bit has no reason so it may make side effect.*/
+	std::array<uint8_t, 2> tx_data({ MODE1_REGISTER , 0x00});
+	write_bytes(tx_data);
+}
 
 void PCA9685_Controller::start()
 {
@@ -87,4 +94,27 @@ void PCA9685_Controller::write_pwm_data()
 	{
 		write_bytes(&(pwm_tx_data[i]),2);
 	}
+}
+
+void PCA9685_Controller::change_freq(unsigned int _freq_in_Hz)
+{
+	constexpr unsigned int osc_clock = 25000000;
+	double prescale_value = std::round(osc_clock / 4096 / _freq_in_Hz) - 1;
+	if(prescale_value < 3)
+	{
+		std::cout<<"Failed to change frequency: Too high frequency\n";
+		return;
+	}
+	if(prescale_value > 255)
+	{
+		std::cout<<"Failed to change frequency: Too low frequency\n";
+		return;
+	}
+	sleep();
+	std::this_thread::sleep_for(std::chrono::microseconds(1));
+	temporary_2byte[0] = PRESCALE_REGISTER;
+	temporary_2byte[1] = static_cast<uint8_t>(static_cast<unsigned int>(prescale_value));
+	std::cout<<"Set val: "<<static_cast<int>(temporary_2byte[1])<<std::endl;
+	write_bytes(temporary_2byte);
+	wake_up();
 }

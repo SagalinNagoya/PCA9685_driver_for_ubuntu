@@ -3,11 +3,14 @@
 #include <thread>
 #include <array>
 #include <memory>
+#include <math.h>
+#include <fenv.h>
 
 namespace PCA9685{
 
 constexpr uint8_t MODE1_REGISTER = 0x00;
 constexpr uint8_t MODE2_REGISTER = 0x01;
+constexpr uint8_t PRESCALE_REGISTER = 0xFE;
 
 class PCA9685_Controller : public I2CController
 {
@@ -28,8 +31,10 @@ private:
 public:
 	PCA9685_Controller(const uint8_t& _bus_num, const uint8_t& _slave_address);
 	void sleep();
+	void wake_up();
 	void start();
 	void reset(bool _start);
 	void set_PWM_duty_of_channel(const double& _duty_ratio, const uint8_t& _channel);
+	void change_freq(unsigned int freq_in_Hz);
 };
 } /*namespace PCA9685*/
